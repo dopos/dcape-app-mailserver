@@ -32,7 +32,10 @@ services:
       - ENABLE_MANAGESIEVE=1
       - ONE_DIR=1
       - DMS_DEBUG=1
-      - SSL_TYPE=manual
+      - POSTSCREEN_ACTION=enforce
+      - REPORT_RECIPIENT=1
+      - REPORT_INTERVAL=daily
+      - SPOOF_PROTECTION=1
       - SSL_CERT_PATH=/certs/certs/${APP_HOST}.${APP_SITE}.crt
       - SSL_KEY_PATH=/certs/private/${APP_HOST}.${APP_SITE}.key
     cap_add:

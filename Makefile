@@ -12,7 +12,7 @@ APP_HOST           ?= mail
 # Use SSL
 #empty => SSL disabled
 #letsencrypt => Enables Let's Encrypt certificates
-SSL_TYPE           ?=
+SSL_TYPE           ?= manual
 
 # Vars for `make user-add`
 # Email user name
@@ -23,12 +23,12 @@ MAIL_PASS          ?= $(shell < /dev/urandom tr -dc A-Za-z0-9 | head -c14; echo)
 # Docker image name
 IMAGE              ?= tvial/docker-mailserver
 # Docker image tag
-IMAGE_VER         ?= latest
+IMAGE_VER         ?= release-v6.2.0
 # Docker-compose project name (container name prefix)
 PROJECT_NAME       ?= $(APP_SITE)
 
 # Docker-compose image tag
-DC_VER             ?= 1.14.0
+DC_VER             ?= 1.23.2
 
 define CONFIG_DEF
 # ------------------------------------------------------------------------------
