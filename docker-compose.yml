@@ -13,6 +13,8 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.mail.rule=Host(`${APP_SITE:?Must be set}`)"
       - "traefik.port=587"
+      - "traefik.http.routers.mail.tls=true"
+      - "traefik.http.routers.mail.tls.certresolver=letsEncrypt"
     ports:
       - "25:25"
       - "143:143"
