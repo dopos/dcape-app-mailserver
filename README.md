@@ -47,7 +47,7 @@ sudo make dkim-add
 
 ### Letsencrypt
 
-Based on https://github.com/tomav/docker-mailserver/issues/728
+Based on [traefik v2](https://github.com/tomav/docker-mailserver/wiki/Configure-SSL#traefik-v2)
 
 ## License
 

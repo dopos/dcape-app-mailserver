@@ -1,44 +1,52 @@
 # dcape-app-mattermost Makefile
 
-SHELL               = /bin/bash
+SHELL               = /bin/sh
 CFG                ?= .env
 
 # Site domain
-APP_SITE           ?= dev.lan
-
+APP_DOMAIN         ?= dev.lan
 # Site host
 APP_HOST           ?= mail
+# Site fqdn
+APP_SITE           ?= $(APP_HOST).$(APP_DOMAIN)
 
 # Use SSL
 #empty => SSL disabled
 #letsencrypt => Enables Let's Encrypt certificates
-SSL_TYPE           ?= manual
+SSL_TYPE           ?= letsencrypt
 
 # Vars for `make user-add`
 # Email user name
-MAIL_USER          ?= admin@$(APP_SITE)
+MAIL_USER          ?= admin@$(APP_DOMAIN)
 # Email user password
 MAIL_PASS          ?= $(shell < /dev/urandom tr -dc A-Za-z0-9 | head -c14; echo)
 
 # Docker image name
 IMAGE              ?= tvial/docker-mailserver
 # Docker image tag
-IMAGE_VER         ?= release-v6.2.0
+IMAGE_VER          ?= :release-v7.2.0
+
+# dcape v2 traefik parent dir (/opt/dcape/var)
+DCAPE_ROOT         ?= ./../../
+# dcape v2 app root for drone
+APP_ROOT           ?= $(PWD)
+
 # Docker-compose project name (container name prefix)
-PROJECT_NAME       ?= $(APP_SITE)
+COMPOSE_PROJECT_NAME ?= mail
 
 # Docker-compose image tag
-DC_VER             ?= 1.23.2
+DC_VER             ?=
 
 define CONFIG_DEF
 # ------------------------------------------------------------------------------
 # Mattermost settings
 
 # Site domain
-APP_SITE=$(APP_SITE)
-
+APP_DOMAIN=$(APP_DOMAIN)
 # Site host
 APP_HOST=$(APP_HOST)
+# Site fqdn
+APP_SITE=$(APP_SITE)
 
 # SSL
 SSL_TYPE=$(SSL_TYPE)
@@ -50,7 +58,12 @@ IMAGE=$(IMAGE)
 # Docker image tag
 IMAGE_VER=$(IMAGE_VER)
 # Docker-compose project name (container name prefix)
-PROJECT_NAME=$(PROJECT_NAME)
+COMPOSE_PROJECT_NAME=$(COMPOSE_PROJECT_NAME)
+
+# dcape v2 traefik parent dir (/opt/dcape/var)
+DCAPE_ROOT=$(DCAPE_ROOT)
+# dcape v2 app root for drone
+APP_ROOT=$(APP_ROOT)
 
 endef
 export CONFIG_DEF
@@ -58,7 +71,7 @@ export CONFIG_DEF
 -include $(CFG)
 export
 
-.PHONY: all $(CFG) start start-hook stop update up reup down dc help
+.PHONY: all $(CFG).sample start start-hook stop update up reup down dc help
 
 all: help
 
@@ -100,8 +113,7 @@ dc: docker-compose.yml
 	  -v /var/run/docker.sock:/var/run/docker.sock \
 	  -v $$PWD:$$PWD \
 	  -w $$PWD \
-	  docker/compose:$(DC_VER) \
-	  -p $$PROJECT_NAME \
+	  docker/compose$(DC_VER) \
 	  $(CMD)
 
 # ------------------------------------------------------------------------------
@@ -110,7 +122,7 @@ user-add:
 	docker run --rm \
 	  -e MAIL_USER=$(MAIL_USER) \
 	  -e MAIL_PASS=$(MAIL_PASS) \
-	  -ti $$IMAGE:$$IMAGE_VER \
+	  -ti $$IMAGE$$IMAGE_VER \
 	  /bin/sh -c 'echo "$$MAIL_USER|$$(doveadm pw -s SHA512-CRYPT -u $$MAIL_USER -p $$MAIL_PASS)"' >> ../../data/mail/config/postfix-accounts.cf
 
 # ------------------------------------------------------------------------------
@@ -118,7 +130,7 @@ user-add:
 dkim-add:
 	docker run --rm \
 	  -v $$PWD/../../data/mail/config:/tmp/docker-mailserver \
-	  -ti $$IMAGE:$$IMAGE_VER generate-dkim-config
+	  -ti $$IMAGE$$IMAGE_VER generate-dkim-config
 
 # ------------------------------------------------------------------------------
 
@@ -128,7 +140,7 @@ certs:
 	bash dumpcerts.sh ../../data/acme/certs.json ../../data/mail/certs/
 # ------------------------------------------------------------------------------
 
-$(CFG):
+$(CFG).sample:
 	@[ -f $@ ] || { echo "$$CONFIG_DEF" > $@ ; echo "Warning: Created default $@" ; }
 
 # ------------------------------------------------------------------------------

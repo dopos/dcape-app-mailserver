@@ -1,0 +1,25 @@
+---
+kind: pipeline
+type: docker
+name: mailserver
+
+steps:
+
+- name: deploy_local
+  pull: never
+  image: ${DCAPE_COMPOSE}
+  commands:
+  - . setup config
+  - . setup root keep
+  - . .env
+  - echo "Run make in $$APP_ROOT"
+  - cp -r .git .env Makefile docker-compose.yml $$APP_ROOT
+  - docker-compose up -d --force-recreate
+  volumes:
+  - name: dockersock
+    path: /var/run/docker.sock
+
+volumes:
+- name: dockersock
+  host:
+    path: /var/run/docker.sock
