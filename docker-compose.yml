@@ -3,11 +3,11 @@ version: '2.1'
 services:
 
   mail:
-    image: ${IMAGE}${IMAGE_VER}
+    image: ${IMAGE}:${IMAGE_VER}
     restart: always
-    hostname: ${APP_HOST}
+    hostname: ${APP_SITE}
     domainname: ${APP_DOMAIN}
-    container_name: ${APP_HOST}
+    container_name: ${APP_SITE}
     labels:
       - "dcape.traefik.tag=${DCAPE_TAG}"
       - "traefik.enable=true"
@@ -16,23 +16,25 @@ services:
       - "traefik.http.routers.mail.tls=true"
       - "traefik.http.routers.mail.tls.certresolver=letsEncrypt"
     ports:
-      - "25:25"
+      - "${SMTP_LISTEN}:25"
       - "143:143"
+      - "465:465"
       - "587:587"
       - "993:993"
       - "4190:4190"
     volumes:
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
-      - ${APP_ROOT}/data:/var/mail
-      - ${APP_ROOT}/state:/var/mail-state
-      - ${APP_ROOT}/postgrey:/etc/postgrey
-      - ${APP_ROOT}/config:/tmp/docker-mailserver
-      - ${APP_ROOT}/log:/var/log/mail
+      - ${DATA_PATH}/data:/var/mail
+      - ${DATA_PATH}/state:/var/mail-state
+      - ${DATA_PATH}/postgrey:/etc/postgrey
+      - ${DATA_PATH}/config:/tmp/docker-mailserver
+      - ${DATA_PATH}/log:/var/log/mail
       - ${DCAPE_ROOT}/traefik/acme.json:/etc/letsencrypt/acme.json:ro
     environment:
+      - POSTFIX_MESSAGE_SIZE_LIMIT
+      - ENABLE_CLAMAV
       - ENABLE_SPAMASSASSIN=1
-      - ENABLE_CLAMAV=1
       - ENABLE_FAIL2BAN=1
       - ENABLE_POSTGREY=1
       - ENABLE_MANAGESIEVE=1
@@ -41,16 +43,22 @@ services:
       - POSTSCREEN_ACTION=enforce
       - REPORT_RECIPIENT=1
       - REPORT_INTERVAL=daily
+      - PFLOGSUMM_TRIGGER=daily_cron
+      - LOGWATCH_INTERVAL=daily
+      - SA_SPAM_SUBJECT=***SPAM(_SCORE_)***
       - SPOOF_PROTECTION=1
+      - SPAMASSASSIN_SPAM_TO_INBOX=1
+      - MOVE_SPAM_TO_JUNK=1
+      - ENABLE_SPAMASSASSIN_KAM=1
       - SSL_TYPE=${SSL_TYPE} # required env values, enable SSL on the mailserver
       - SSL_CERT_PATH=/var/mail-state/manual-ssl/cert
       - SSL_KEY_PATH=/var/mail-state/manual-ssl/key
+      - ENABLE_UPDATE_CHECK=0 # wait for https://github.com/docker-mailserver/docker-mailserver/issues/2952
     cap_add:
       - NET_ADMIN
       - SYS_PTRACE
     networks:
       - web
-
 
 networks:
   web:

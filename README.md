@@ -21,7 +21,7 @@ Mail server application package for [dcape](https://github.com/dopos/dcape).
 * [dcape](https://github.com/dopos/dcape)
 * Git service ([github](https://github.com), [gitea](https://gitea.io) or [gogs](https://gogs.io))
 
-## Usage
+## Install
 
 * Fork this repo in your Git service
 * Setup deploy hook
@@ -32,6 +32,7 @@ Mail server application package for [dcape](https://github.com/dopos/dcape).
 
 See also: [Deploy setup](https://github.com/dopos/dcape/blob/master/DEPLOY.md) (in Russian)
 
+## Usage
 
 ### Add user
 
@@ -44,6 +45,17 @@ sudo make user-add MAIL_USER=user@domain
 ```
 sudo make dkim-add
 ```
+
+### Disable amavis quarantine
+
+Add config/amavis.cf:
+```
+$final_spam_destiny=D_PASS;
+$final_virus_destiny=D_PASS;
+
+1;
+```
+See also: [how to disable quarantine](https://serverfault.com/a/801054)
 
 ### Letsencrypt
 
