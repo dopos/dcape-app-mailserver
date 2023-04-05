@@ -88,14 +88,14 @@ dkim-add:
 
 ## make ban IP=1.1.1.1.1[/24] [BAN_APP=postfix]
 ban:
-	docker exec $(APP_TAG) setup fail2ban ban "$(IP)"
+	docker exec $(APP_SITE) setup fail2ban ban "$(IP)"
 
 BAN_APP ?= custom
 
 ## make app-ban IP=1.1.1.1.1[/24] [BAN_APP=postfix]
 app-ban:
-	docker exec $(APP_TAG) fail2ban-client set $(BAN_APP) banip "$(IP)"
+	docker exec $(APP_SITE) fail2ban-client set $(BAN_APP) banip "$(IP)"
 
 ## make app-unban IP=1.1.1.1.1[/24] [BAN_APP=postfix]
 app-unban:
-	docker exec $(APP_TAG) fail2ban-client set $APP unbanip "$(IP)"
+	docker exec $(APP_SITE) fail2ban-client set $APP unbanip "$(IP)"
