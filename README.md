@@ -12,7 +12,7 @@ Mail server application package for [dcape](https://github.com/dopos/dcape).
 
 ## Docker image used
 
-* [tomav/docker-mailserver](https://github.com/tomav/docker-mailserver)
+* [docker-mailserver](https://github.com/docker-mailserver/docker-mailserver)
 
 ## Requirements
 
@@ -37,7 +37,7 @@ See also: [Deploy setup](https://github.com/dopos/dcape/blob/master/DEPLOY.md) (
 ### Add user
 
 ```
-sudo make user-add MAIL_USER=user@domain
+sudo make user-add USER_EMAIL=user@domain USER_PASS=<password>
 ```
 
 ### Setup DKIM
@@ -59,7 +59,7 @@ See also: [how to disable quarantine](https://serverfault.com/a/801054)
 
 ### Letsencrypt
 
-Based on [traefik v2](https://github.com/tomav/docker-mailserver/wiki/Configure-SSL#traefik-v2)
+Based on [traefik v2](https://docker-mailserver.github.io/docker-mailserver/latest/config/security/ssl/#traefik-v2)
 
 ## License
 
