@@ -32,28 +32,27 @@ services:
       - ${DATA_PATH}/log:/var/log/mail
       - ${DCAPE_ROOT}/traefik/acme.json:/etc/letsencrypt/acme.json:ro
     environment:
-      - POSTFIX_MESSAGE_SIZE_LIMIT
       - ENABLE_CLAMAV
-      - ENABLE_SPAMASSASSIN=1
-      - ENABLE_FAIL2BAN=1
-      - ENABLE_POSTGREY=1
-      - ENABLE_MANAGESIEVE=1
-      - ONE_DIR=1
+      - POSTFIX_MESSAGE_SIZE_LIMIT
+      - SSL_TYPE # required env values, enable SSL on the mailserver
       - DMS_DEBUG=1
-      - POSTSCREEN_ACTION=enforce
-      - REPORT_RECIPIENT=1
-      - REPORT_INTERVAL=daily
-      - PFLOGSUMM_TRIGGER=daily_cron
-      - LOGWATCH_INTERVAL=daily
-      - SA_SPAM_SUBJECT=***SPAM(_SCORE_)***
-      - SPOOF_PROTECTION=1
-      - SPAMASSASSIN_SPAM_TO_INBOX=1
-      - MOVE_SPAM_TO_JUNK=1
+      - ENABLE_FAIL2BAN=1
+      - ENABLE_MANAGESIEVE=1
+      - ENABLE_POSTGREY=1
+      - ENABLE_SPAMASSASSIN=1
       - ENABLE_SPAMASSASSIN_KAM=1
-      - SSL_TYPE=${SSL_TYPE} # required env values, enable SSL on the mailserver
+      - ENABLE_UPDATE_CHECK=0 # wait for https://github.com/docker-mailserver/docker-mailserver/issues/2952
+      - LOGWATCH_INTERVAL=daily
+      - MOVE_SPAM_TO_JUNK=1
+      - ONE_DIR=1
+      - PFLOGSUMM_TRIGGER=daily_cron
+      - POSTSCREEN_ACTION=enforce
+      - REPORT_INTERVAL=daily
+      - SA_SPAM_SUBJECT=***SPAM(_SCORE_)***
+      - SPAMASSASSIN_SPAM_TO_INBOX=1
+      - SPOOF_PROTECTION=1
       - SSL_CERT_PATH=/var/mail-state/manual-ssl/cert
       - SSL_KEY_PATH=/var/mail-state/manual-ssl/key
-      - ENABLE_UPDATE_CHECK=0 # wait for https://github.com/docker-mailserver/docker-mailserver/issues/2952
     cap_add:
       - NET_ADMIN
       - SYS_PTRACE
