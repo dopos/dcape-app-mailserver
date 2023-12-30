@@ -2,52 +2,53 @@ version: '2.1'
 
 services:
 
-  mail:
-    image: ${IMAGE}:${IMAGE_VER}
-    restart: always
-    hostname: ${APP_SITE}
-    domainname: ${APP_DOMAIN}
-    container_name: ${APP_SITE}
+  app:
     labels:
-      - "dcape.traefik.tag=${DCAPE_TAG}"
-      - "traefik.enable=true"
-      - "traefik.http.routers.mail.rule=Host(`${APP_SITE:?Must be set}`)"
-      - "traefik.port=587"
-      - "traefik.http.routers.mail.tls=true"
-      - "traefik.http.routers.mail.tls.certresolver=letsEncrypt"
+      - "traefik.http.services.${APP_TAG}.loadbalancer.server.port=587"
     ports:
-      - "${SMTP_LISTEN}:25"
+      - "25:25"
       - "143:143"
       - "465:465"
       - "587:587"
       - "993:993"
       - "4190:4190"
     volumes:
-      - /etc/timezone:/etc/timezone:ro
-      - /etc/localtime:/etc/localtime:ro
-      - ${DATA_PATH}/data:/var/mail
-      - ${DATA_PATH}/state:/var/mail-state
-      - ${DATA_PATH}/postgrey:/etc/postgrey
-      - ${DATA_PATH}/config:/tmp/docker-mailserver
-      - ${DATA_PATH}/log:/var/log/mail
-      - ${DCAPE_ROOT}/traefik/acme.json:/etc/letsencrypt/acme.json:ro
+      - ${APP_ROOT}/data:/var/mail
+      - ${APP_ROOT}/state:/var/mail-state
+      - ${APP_ROOT}/postgrey:/etc/postgrey
+      - ${APP_ROOT}/config:/tmp/docker-mailserver
+      - ${APP_ROOT}/log:/var/log/mail
+      - ${DCAPE_ROOT}/var/traefik/acme.json:/etc/letsencrypt/acme.json:ro
     environment:
-      - ENABLE_CLAMAV
+      - OVERRIDE_HOSTNAME=${APP_SITE}
       - POSTFIX_MESSAGE_SIZE_LIMIT
+      - RELAY_HOST
+      - RELAY_PASSWORD
+      - RELAY_PORT
+      - RELAY_USER
       - SSL_TYPE # required env values, enable SSL on the mailserver
+
       - DMS_DEBUG=1
+      - ENABLE_AMAVIS=0
+      - ENABLE_CLAMAV=0
       - ENABLE_FAIL2BAN=1
       - ENABLE_MANAGESIEVE=1
-      - ENABLE_POSTGREY=1
-      - ENABLE_SPAMASSASSIN=1
+      - ENABLE_OPENDKIM=0
+      - ENABLE_OPENDMARC=0
+      - ENABLE_POLICYD_SPF=0
+      - ENABLE_POP3=0
+      - ENABLE_POSTGREY=0
+      - ENABLE_RSPAMD=1
+      - ENABLE_RSPAMD_REDIS=1
+      - ENABLE_SPAMASSASSIN=0
       - ENABLE_SPAMASSASSIN_KAM=1
-      - ENABLE_UPDATE_CHECK=0 # wait for https://github.com/docker-mailserver/docker-mailserver/issues/2952
       - LOGWATCH_INTERVAL=daily
       - MOVE_SPAM_TO_JUNK=1
       - ONE_DIR=1
       - PFLOGSUMM_TRIGGER=daily_cron
       - POSTSCREEN_ACTION=enforce
       - REPORT_INTERVAL=daily
+      - RSPAMD_GREYLISTING=1
       - SA_SPAM_SUBJECT=***SPAM(_SCORE_)***
       - SPAMASSASSIN_SPAM_TO_INBOX=1
       - SPOOF_PROTECTION=1
@@ -56,10 +57,3 @@ services:
     cap_add:
       - NET_ADMIN
       - SYS_PTRACE
-    networks:
-      - web
-
-networks:
-  web:
-    external:
-      name: ${DCAPE_NET}
