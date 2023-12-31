@@ -40,7 +40,10 @@ RELAY_PASSWORD  ?=
 #-letsencrypt => Enables Let's Encrypt certificates
 SSL_TYPE        ?= letsencrypt
 
+# Copy from image to persist dir (always)
 PERSIST_FILES    = .git .env Makefile docker-compose.yml
+# Keep persistent dir on deploy
+APP_ROOT_OPTS    = keep
 
 # ------------------------------------------------------------------------------
 
@@ -68,7 +71,7 @@ user-add:
 	  -e MAIL_USER=$(USER_EMAIL) \
 	  -e MAIL_PASS=$(USER_PASS) \
 	  -ti $$IMAGE:$$IMAGE_VER \
-	  /bin/sh -c 'echo "$$MAIL_USER|$$(doveadm pw -s SHA512-CRYPT -u $$MAIL_USER -p $$MAIL_PASS)"' >> $(DATA_PATH)/config/postfix-accounts.cf
+	  /bin/sh -c 'echo "$$MAIL_USER|$$(doveadm pw -s SHA512-CRYPT -u $$MAIL_USER -p $$MAIL_PASS)"' >> $(APP_ROOT)/config/postfix-accounts.cf
 
 # ------------------------------------------------------------------------------
 
@@ -77,20 +80,22 @@ dkim-add:
 	  -v $(DATA_PATH)/config:/tmp/docker-mailserver \
 	  -ti $$IMAGE:$$IMAGE_VER generate-dkim-config
 
-dkim: CMD=exec mail setup config dkim domain 'dcape.ru,dcape.online'
+dkim: CMD=exec app setup config dkim domain '$(DOMAIN)'
 dkim: dc
 
-## make ban IP=1.1.1.1.1[/24] [BAN_APP=postfix]
+IP ?= 1.1.1.1
+
+## make ban IP=1.1.1.1[/24]
 ban:
 	@echo -n "$(IP): "
-	@docker exec app setup fail2ban ban "$(IP)"
+	@docker exec $(APP_TAG)-app-1 setup fail2ban ban "$(IP)"
 
 BAN_APP ?= custom
 
-## make app-ban IP=1.1.1.1.1[/24] [BAN_APP=postfix]
+## make app-ban IP=1.1.1.0[/24] BAN_APP=postfix
 app-ban:
-	docker exec $(APP_SITE) fail2ban-client set $(BAN_APP) banip "$(IP)"
+	docker exec $(APP_TAG)-app-1 fail2ban-client set $(BAN_APP) banip "$(IP)"
 
-## make app-unban IP=1.1.1.1.1[/24] [BAN_APP=postfix]
+## make app-unban IP=1.1.1.0[/24] BAN_APP=postfix
 app-unban:
-	docker exec $(APP_SITE) fail2ban-client set $APP unbanip "$(IP)"
+	docker exec $(APP_TAG)-app-1 fail2ban-client set $(BAN_APP) unbanip "$(IP)"
